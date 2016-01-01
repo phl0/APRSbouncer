@@ -10,6 +10,11 @@ if (! $callsign) {
    exit 1;
 }
 
+$latitude = $cfg->param('Latitude');
+$longitude = $cfg->param('Longitude');
+$comment = $cfg->param('Comment');
+$interval = $cfg->param('Interval');
+
 $server = $cfg->param('Server');
 if (! $server) {
    printf("Server not defined. Please check config file!\n");
