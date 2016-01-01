@@ -9,6 +9,7 @@ if (! $callsign) {
    printf("Callsign not defined. Please check config file!\n");
    exit 1;
 }
+
 $server = $cfg->param('Server');
 if (! $server) {
    printf("Server not defined. Please check config file!\n");
@@ -35,8 +36,11 @@ $session->errmode('return');
 $session->Net::Telnet::open(Host => $server, Port => $port);
 print $session "user $user pass $passcode vers APRSclient 0.1 filter b/$callsign*\n";
 while () {
-   $from_buffer = $session->getline();
-   print $from_buffer;
+   $line = $session->getline();
+   # Suppres status messages and comments on the net
+   if ($line =~ /^[^#]/) {
+      print $line;
+   }
    $msg = $session->errmsg;
    recon() if ($msg);
 }
