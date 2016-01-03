@@ -1,4 +1,4 @@
-# APRSclient
+# APRSbouncer
 A console based client for APRS-IS written in Perl. The purpose is to have "deputy" APRS client on the APRS-IS as long as your default (HF-)APRS station is offline.
 
 # Requirements
