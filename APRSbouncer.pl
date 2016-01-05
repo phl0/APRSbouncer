@@ -8,6 +8,8 @@ $callsign = $cfg->param('Callsign');
 $latitude = $cfg->param('Latitude');
 $longitude = $cfg->param('Longitude');
 $comment = $cfg->param('Comment');
+$overlay = $cfg->param('Overlay');
+$symbol = $cfg->param('Symbol');
 $interval = $cfg->param('Interval');
 $server = $cfg->param('Server');
 $port = $cfg->param('Port');
@@ -16,6 +18,9 @@ $passcode = $cfg->param('Passcode');
 
 $filtered_call = $callsign;
 $filtered_call =~ s/-+\d{0,2}//;
+$lat = substr($latitude,2,2).substr($latitude,5,5).substr($latitude,0,1);
+$lon = substr($longitude,2,3).substr($longitude,6,5).substr($longitude,0,1);
+$string = "${callsign}>APB001,TCPIP*:=${lat}${overlay}${lon}${symbol}${comment}";
 
 my $session = new Net::Telnet(Timeout => '60');
 $session->errmode('return');
