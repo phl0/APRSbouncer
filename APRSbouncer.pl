@@ -2,6 +2,9 @@
 use Config::Simple;
 use Net::Telnet;
 
+# disable output buffering
+$|=1;
+
 $cfg = new Config::Simple('APRSbouncer.conf');
 
 $callsign = $cfg->param('Callsign');
@@ -26,6 +29,7 @@ my $session = new Net::Telnet(Timeout => '60');
 $session->errmode('return');
 $session->Net::Telnet::open(Host => $server, Port => $port);
 print $session "user $username pass $passcode vers APRSbouncer 0.1 filter b/$filtered_call*\n";
+
 while () {
    $line = $session->getline();
    # Suppres status messages and comments on the net
