@@ -29,6 +29,7 @@ my $session = new Net::Telnet(Timeout => '60');
 $session->errmode('return');
 $session->Net::Telnet::open(Host => $server, Port => $port);
 print $session "user $username pass $passcode vers APRSbouncer 0.1 filter b/$filtered_call*\n";
+sleep 3;
 
 while () {
    # Wait some time for possible beacon on the net
