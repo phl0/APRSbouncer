@@ -40,5 +40,5 @@ sub recon {
    print "Error: $msg\n";
    $session->close();
    $session->Net::Telnet::open(Host => $server, Port => $port);
-   print $session "user $username pass $passcode vers APRSbouncer 0.1 filter b/$callsign*\n";
+   print $session "user $username pass $passcode vers APRSbouncer 0.1 filter b/$filtered_call*\n";
 }
