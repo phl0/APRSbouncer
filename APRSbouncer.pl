@@ -31,13 +31,17 @@ $session->Net::Telnet::open(Host => $server, Port => $port);
 print $session "user $username pass $passcode vers APRSbouncer 0.1 filter b/$filtered_call*\n";
 
 while () {
-   $line = $session->getline();
-   # Suppres status messages and comments on the net
-   if ($line =~ /^[^#]/) {
-      print $line;
+   # Wait some time for possible beacon on the net
+   if($line = $session->getline(Timeout => 5)) {
+      # Suppres status messages and comments on the net
+      if ($line =~ /^[^#]/) {
+         print $line;
+      }
+   } else {
+      # Do other stuff in case no beacon was received on the net
    }
    $msg = $session->errmsg;
-   recon() if ($msg);
+   recon() if ($msg != "read timed-out");
 }
 
 sub recon {
