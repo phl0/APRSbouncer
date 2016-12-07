@@ -25,17 +25,17 @@ $lat = substr($latitude,2,2).substr($latitude,5,5).substr($latitude,0,1);
 $lon = substr($longitude,2,3).substr($longitude,6,5).substr($longitude,0,1);
 $beaconstring = "${callsign}>APB001,TCPIP*:=${lat}${overlay}${lon}${symbol}${comment}";
 
-my $session = new Net::Telnet(Timeout => '5');
+my $session = new Net::Telnet(Timeout => '30');
 $session->errmode('return');
 $session->Net::Telnet::open(Host => $server, Port => $port);
 print $session "user $username pass $passcode vers APRSbouncer 0.1 filter b/$filtered_call*\n";
 sleep 1;
-my $time = time();
-my $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst;
-my $now = time();
-my ($nowsec, $nowmin, $nowhour, $nowmday, $nowmon, $nowyear, $nowwday, $nowyday, $nowisdst) = localtime();
+my $lastinetbeacontime = time();
+my $lastinetbeacontimesec, $lastinetbeacontimemin, $lastinetbeacontimehour, $lastinetbeacontimemday, $lastinetbeacontimemon, $lastinetbeacontimeyear, $lastinetbeacontimewday, $lastinetbeacontimeyday, $lastinetbeacontimeisdst;
+my $lastownbeacontime = time();
+my ($lastownbeacontimesec, $lastownbeacontimemin, $lastownbeacontimehour, $lastownbeacontimemday, $lastownbeacontimemon, $lastownbeacontimeyear, $lastownbeacontimewday, $lastownbeacontimeyday, $lastownbeacontimeisdst) = localtime($lastownbeacontime);
 print $session "$beaconstring\n";
-printf("\rLast beacon on APRS-IS: %02d:%02d:%02d; last own beacon sent: %02d:%02d:%02d", $hour,$min,$sec, $nowhour, $nowmin, $nowsec);
+printf("\rLast beacon on APRS-IS: %02d:%02d:%02d; last own beacon sent: %02d:%02d:%02d", $lastinetbeacontimehour,$lastinetbeacontimemin,$lastinetbeacontimesec, $lastownbeacontimehour, $lastownbeacontimemin, $lastownbeacontimesec);
 
 while () {
    # Wait some time for possible beacon on the net
@@ -45,28 +45,34 @@ while () {
          #print $line;
       }
       if ($line =~ /^$callsign>/) {
-         #printf("Own beacon found. Resetting timer!\n");
-         $time = time();
-         ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime($time);
-         printf("\rLast beacon on APRS-IS: %02d:%02d:%02d; last own beacon sent: %02d:%02d:%02d", $hour,$min,$sec, $nowhour, $nowmin, $nowsec);
+         $lastinetbeacontime = time();
+         ($lastinetbeacontimesec, $lastinetbeacontimemin, $lastinetbeacontimehour, $lastinetbeacontimemday, $lastinetbeacontimemon, $lastinetbeacontimeyear, $lastinetbeacontimewday, $lastinetbeacontimeyday, $lastinetbeacontimeisdst) = localtime($lastinetbeacontime);
+         printf("\rLast beacon on APRS-IS: %02d:%02d:%02d; last own beacon sent: %02d:%02d:%02d", $lastinetbeacontimehour,$lastinetbeacontimemin,$lastinetbeacontimesec, $lastownbeacontimehour, $lastownbeacontimemin, $lastownbeacontimesec);
       }
    } else {
       # If no beacon was received on the net we will send a beacon
-      $now = time();
-      ($nowsec, $nowmin, $nowhour, $nowmday, $nowmon, $nowyear, $nowwday, $nowyday, $nowisdst) = localtime();
-      if (($now - $time) > ($interval * 60)) {
-         $time = time();
-         printf("\rLast beacon on APRS-IS: %02d:%02d:%02d; last own beacon sent: %02d:%02d:%02d", $hour,$min,$sec, $nowhour, $nowmin, $nowsec);
+      if ((time() - $lastinetbeacontime) > ($interval * 60)) {
          print $session "$beaconstring\n";
-   }
+         $lastinetbeacontime = time();
+         ($lastinetbeacontimesec, $lastinetbeacontimemin, $lastinetbeacontimehour, $lastinetbeacontimemday, $lastinetbeacontimemon, $lastinetbeacontimeyear, $lastinetbeacontimewday, $lastinetbeacontimeyday, $lastinetbeacontimeisdst) = localtime($lastinetbeacontime);
+         $lastownbeacontime = time();
+         ($lastownbeacontimesec, $lastownbeacontimemin, $lastownbeacontimehour, $lastownbeacontimemday, $lastownbeacontimemon, $lastownbeacontimeyear, $lastownbeacontimewday, $lastownbeacontimeyday, $lastownbeacontimeisdst) = localtime($lastownbeacontime);
+         printf("\rLast beacon on APRS-IS: %02d:%02d:%02d; last own beacon sent: %02d:%02d:%02d", $lastinetbeacontimehour,$lastinetbeacontimemin,$lastinetbeacontimesec, $lastownbeacontimehour, $lastownbeacontimemin, $lastownbeacontimesec);
+      }
+      #   $time = time();
+      #$lastownbeacontime = time();
+      #($nowsec, $nowmin, $nowhour, $nowmday, $nowmon, $nowyear, $nowwday, $nowyday, $nowisdst) = localtime();
 
    }
-   $msg = $session->errmsg;
-   recon() if ($msg != "read timed-out");
+   $msg = $session->errmsg();
+   if ($msg) {
+      sleep 10;
+      recon();
+   }
 }
 
 sub recon {
-   print "Error: $msg\n";
+   print "\nError: $msg\n";
    $session->close();
    $session->Net::Telnet::open(Host => $server, Port => $port);
    print $session "user $username pass $passcode vers APRSbouncer 0.1 filter b/$filtered_call*\n";
