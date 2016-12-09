@@ -40,6 +40,11 @@ printf("\rLast beacon on APRS-IS: %02d:%02d:%02d; last own beacon sent: %02d:%02
 while () {
    # Wait some time for possible beacon on the net
    if($line = $session->getline()) {
+      if ($line =~ /^# /) {
+         if ($debug) {
+            print "heardbeat received\n";
+         }
+      }
       # Suppres status messages and comments on the net
       if ($line =~ /^[^#]/) {
          if ($debug) {
@@ -47,6 +52,9 @@ while () {
          }
       }
       if ($line =~ /^$callsign>/) {
+         if ($debug) {
+            print $line;
+         }
          $lastinetbeacontime = time();
          ($lastinetbeacontimesec, $lastinetbeacontimemin, $lastinetbeacontimehour, $lastinetbeacontimemday, $lastinetbeacontimemon, $lastinetbeacontimeyear, $lastinetbeacontimewday, $lastinetbeacontimeyday, $lastinetbeacontimeisdst) = localtime($lastinetbeacontime);
          printf("\rLast beacon on APRS-IS: %02d:%02d:%02d; last own beacon sent: %02d:%02d:%02d", $lastinetbeacontimehour,$lastinetbeacontimemin,$lastinetbeacontimesec, $lastownbeacontimehour, $lastownbeacontimemin, $lastownbeacontimesec);
