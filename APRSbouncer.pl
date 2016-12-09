@@ -19,6 +19,7 @@ $port = $cfg->param('Port');
 $username = $cfg->param('Username');
 $passcode = $cfg->param('Passcode');
 $version = "0.2";
+$debug = 1;
 
 $filtered_call = $callsign;
 $filtered_call =~ s/-+\d{0,2}//;
@@ -43,7 +44,9 @@ while () {
    if($line = $session->getline()) {
       # Suppres status messages and comments on the net
       if ($line =~ /^[^#]/) {
-         #print $line;
+         if ($debug) {
+            print $line;
+         }
       }
       if ($line =~ /^$callsign>/) {
          $lastinetbeacontime = time();
