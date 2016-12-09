@@ -75,6 +75,8 @@ while () {
 sub recon {
    print "\nError: $msg\n";
    $session->close();
+   $session = new Net::Telnet(Timeout => '30');
+   $session->errmode('return');
    $session->Net::Telnet::open(Host => $server, Port => $port);
    print $session "user $username pass $passcode vers APRSbouncer $version filter b/$filtered_call*\n";
 }
