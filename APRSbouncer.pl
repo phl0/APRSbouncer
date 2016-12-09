@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use Config::Simple;
 use Net::Telnet;
+use POSIX qw( strftime );
 
 # disable output buffering
 $|=1;
@@ -19,7 +20,7 @@ $port = $cfg->param('Port');
 $username = $cfg->param('Username');
 $passcode = $cfg->param('Passcode');
 $version = "0.2";
-$debug = 1;
+$debug = 0;
 
 $lat = substr($latitude,2,2).substr($latitude,5,5).substr($latitude,0,1);
 $lon = substr($longitude,2,3).substr($longitude,6,5).substr($longitude,0,1);
@@ -30,49 +31,44 @@ $session->errmode('return');
 $session->Net::Telnet::open(Host => $server, Port => $port);
 print $session "user $username pass $passcode vers APRSbouncer $version filter b/$callsign*\n";
 sleep 1;
-my $lastinetbeacontime = time();
-my $lastinetbeacontimesec, $lastinetbeacontimemin, $lastinetbeacontimehour, $lastinetbeacontimemday, $lastinetbeacontimemon, $lastinetbeacontimeyear, $lastinetbeacontimewday, $lastinetbeacontimeyday, $lastinetbeacontimeisdst;
-my $lastownbeacontime = time();
-my ($lastownbeacontimesec, $lastownbeacontimemin, $lastownbeacontimehour, $lastownbeacontimemday, $lastownbeacontimemon, $lastownbeacontimeyear, $lastownbeacontimewday, $lastownbeacontimeyday, $lastownbeacontimeisdst) = localtime($lastownbeacontime);
+my $lastbeaconin = time();
+my $lastbeaconsent = time();
 print $session "$beaconstring\n";
-printf("\rLast beacon on APRS-IS: %02d:%02d:%02d; last own beacon sent: %02d:%02d:%02d", $lastinetbeacontimehour,$lastinetbeacontimemin,$lastinetbeacontimesec, $lastownbeacontimehour, $lastownbeacontimemin, $lastownbeacontimesec);
+print "\rLast beacon on APRS-IS: ";
+print strftime("%H:%M:%S ", localtime($lastbeaconin));
+print "; last own beacon sent: ";
+print strftime("%H:%M:%S", localtime($lastbeaconsent));
 
 while () {
    # Wait some time for possible beacon on the net
    if($line = $session->getline()) {
-      if ($line =~ /^# /) {
-         if ($debug) {
-            print "heardbeat received\n";
-         }
+      # If we receive a beacon with own callsign on the net just 
+      # reset the lastbeaconin timer
+      if ($line =~ /^$callsign>/) {
+         $lastbeaconin = time();
+         print "\rLast beacon on APRS-IS: ";
+         print strftime("%H:%M:%S ", localtime($lastbeaconin));
+         print "; last own beacon sent: ";
+         print strftime("%H:%M:%S", localtime($lastbeaconsent));
       }
       # Suppres status messages and comments on the net
-      if ($line =~ /^[^#]/) {
+      # but also handle own beacon as that is only executed if getline 
+      # succeeded
+      if ($line =~ /^#/) {
          if ($debug) {
+            print strftime("%H:%M:%S ", localtime(time()));
             print $line;
          }
-      }
-      if ($line =~ /^$callsign>/) {
-         if ($debug) {
-            print $line;
+         # If no beacon was received on the net we will send a beacon
+         if ((time() - $lastbeaconin) > ($interval * 60)) {
+            print $session "$beaconstring\n";
+            $lastbeaconsent = time();
+            print "\rLast beacon on APRS-IS: ";
+            print strftime("%H:%M:%S ", localtime($lastbeaconin));
+            print "; last own beacon sent: ";
+            print strftime("%H:%M:%S", localtime($lastbeaconsent));
          }
-         $lastinetbeacontime = time();
-         ($lastinetbeacontimesec, $lastinetbeacontimemin, $lastinetbeacontimehour, $lastinetbeacontimemday, $lastinetbeacontimemon, $lastinetbeacontimeyear, $lastinetbeacontimewday, $lastinetbeacontimeyday, $lastinetbeacontimeisdst) = localtime($lastinetbeacontime);
-         printf("\rLast beacon on APRS-IS: %02d:%02d:%02d; last own beacon sent: %02d:%02d:%02d", $lastinetbeacontimehour,$lastinetbeacontimemin,$lastinetbeacontimesec, $lastownbeacontimehour, $lastownbeacontimemin, $lastownbeacontimesec);
       }
-   } else {
-      # If no beacon was received on the net we will send a beacon
-      if ((time() - $lastinetbeacontime) > ($interval * 60)) {
-         print $session "$beaconstring\n";
-         $lastinetbeacontime = time();
-         ($lastinetbeacontimesec, $lastinetbeacontimemin, $lastinetbeacontimehour, $lastinetbeacontimemday, $lastinetbeacontimemon, $lastinetbeacontimeyear, $lastinetbeacontimewday, $lastinetbeacontimeyday, $lastinetbeacontimeisdst) = localtime($lastinetbeacontime);
-         $lastownbeacontime = time();
-         ($lastownbeacontimesec, $lastownbeacontimemin, $lastownbeacontimehour, $lastownbeacontimemday, $lastownbeacontimemon, $lastownbeacontimeyear, $lastownbeacontimewday, $lastownbeacontimeyday, $lastownbeacontimeisdst) = localtime($lastownbeacontime);
-         printf("\rLast beacon on APRS-IS: %02d:%02d:%02d; last own beacon sent: %02d:%02d:%02d", $lastinetbeacontimehour,$lastinetbeacontimemin,$lastinetbeacontimesec, $lastownbeacontimehour, $lastownbeacontimemin, $lastownbeacontimesec);
-      }
-      #   $time = time();
-      #$lastownbeacontime = time();
-      #($nowsec, $nowmin, $nowhour, $nowmday, $nowmon, $nowyear, $nowwday, $nowyday, $nowisdst) = localtime();
-
    }
    $msg = $session->errmsg();
    if ($msg) {
