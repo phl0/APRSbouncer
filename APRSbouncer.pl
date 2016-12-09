@@ -18,6 +18,7 @@ $server = $cfg->param('Server');
 $port = $cfg->param('Port');
 $username = $cfg->param('Username');
 $passcode = $cfg->param('Passcode');
+$version = "0.2";
 
 $filtered_call = $callsign;
 $filtered_call =~ s/-+\d{0,2}//;
@@ -28,7 +29,7 @@ $beaconstring = "${callsign}>APB001,TCPIP*:=${lat}${overlay}${lon}${symbol}${com
 my $session = new Net::Telnet(Timeout => '30');
 $session->errmode('return');
 $session->Net::Telnet::open(Host => $server, Port => $port);
-print $session "user $username pass $passcode vers APRSbouncer 0.1 filter b/$filtered_call*\n";
+print $session "user $username pass $passcode vers APRSbouncer $version filter b/$filtered_call*\n";
 sleep 1;
 my $lastinetbeacontime = time();
 my $lastinetbeacontimesec, $lastinetbeacontimemin, $lastinetbeacontimehour, $lastinetbeacontimemday, $lastinetbeacontimemon, $lastinetbeacontimeyear, $lastinetbeacontimewday, $lastinetbeacontimeyday, $lastinetbeacontimeisdst;
@@ -75,5 +76,5 @@ sub recon {
    print "\nError: $msg\n";
    $session->close();
    $session->Net::Telnet::open(Host => $server, Port => $port);
-   print $session "user $username pass $passcode vers APRSbouncer 0.1 filter b/$filtered_call*\n";
+   print $session "user $username pass $passcode vers APRSbouncer $version filter b/$filtered_call*\n";
 }
