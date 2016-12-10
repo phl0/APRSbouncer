@@ -60,7 +60,7 @@ while () {
             print $line;
          }
          # If no beacon was received on the net we will send a beacon
-         if ((time() - $lastbeaconin) > ($interval * 60)) {
+         if ((time() - $lastbeaconin) > ($interval * 60 + 60) && (time() - $lastbeaconsent) > ($interval * 60)) {
             print $session "$beaconstring\n";
             $lastbeaconsent = time();
             print "\rLast beacon on APRS-IS: ";
