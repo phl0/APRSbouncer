@@ -19,7 +19,7 @@ $server = $cfg->param('Server');
 $port = $cfg->param('Port');
 $username = $cfg->param('Username');
 $passcode = $cfg->param('Passcode');
-$version = "0.3";
+$version = "1.0";
 $debug = 0;
 
 $lat = substr($latitude,2,2).substr($latitude,5,5).substr($latitude,0,1);
