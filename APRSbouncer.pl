@@ -39,9 +39,9 @@ my $lastbeaconin = time();
 my $lastbeaconsent = time();
 print $session "$beaconstring\n";
 print "Last beacon on APRS-IS: ";
-print strftime("%H:%M:%S ", localtime($lastbeaconin));
+print strftime("%H:%M:%S %d.%m.%Y", localtime($lastbeaconin));
 print "; last own beacon sent: ";
-print strftime("%H:%M:%S", localtime($lastbeaconsent));
+print strftime("%H:%M:%S %d.%m.%Y", localtime($lastbeaconsent));
 print "\n";
 my $messagecount = 0;
 
@@ -58,9 +58,9 @@ while () {
          } else {
             $lastbeaconin = time();
             print "Last beacon on APRS-IS: ";
-            print strftime("%H:%M:%S ", localtime($lastbeaconin));
+            print strftime("%H:%M:%S %d.%m.%Y", localtime($lastbeaconin));
             print "; last own beacon sent: ";
-            print strftime("%H:%M:%S", localtime($lastbeaconsent));
+            print strftime("%H:%M:%S %d.%m.%Y", localtime($lastbeaconsent));
             print "\n";
          }
          if ($debug) {
@@ -81,9 +81,9 @@ while () {
             print $session "$beaconstring\n";
             $lastbeaconsent = time();
             print "Last beacon on APRS-IS: ";
-            print strftime("%H:%M:%S ", localtime($lastbeaconin));
+            print strftime("%H:%M:%S %d.%m.%Y", localtime($lastbeaconin));
             print "; last own beacon sent: ";
-            print strftime("%H:%M:%S", localtime($lastbeaconsent));
+            print strftime("%H:%M:%S %d.%m.%Y", localtime($lastbeaconsent));
             print "\n";
          }
       }
@@ -106,7 +106,7 @@ while () {
                my $ack = int(rand(100));
                my $autoanswer = "$callsign>$aprsdst,TCPIP*::$from:${autoanswer}\{$ack";
                print $session "$autoanswer\n";
-               print strftime("%H:%M:%S ", localtime(time()));
+               print strftime("%H:%M:%S %d.%m.%Y", localtime(time()));
                print "Sent auto answer to $from\n";
                $messagecount = 0;
             }
